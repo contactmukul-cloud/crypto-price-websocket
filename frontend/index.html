@@ -2,22 +2,77 @@
 <html>
 <head>
   <title>Crypto Live Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 100px;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      font-size: 36px;
+    }
+
+    #price {
+      font-size: 28px;
+      margin-top: 20px;
+      color: #2c3e50;
+    }
+
+    .loading {
+      color: gray;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
 </head>
+
 <body>
+
   <h1>Live Crypto Price</h1>
-  <h2 id="price">Loading...</h2>
+  <h2 id="price" class="loading">Loading...</h2>
 
-<script>
-  async function fetchPrice() {
-    const res = await fetch("https://crypto-price-websocket-ekol.onrender.com/price");
-    const data = await res.json();
+  <script>
+    const API_URL = "https://crypto-price-websocket-ekol.onrender.com/price";
 
-    document.getElementById("price").innerText =
-      `${data.symbol}: $${data.last_price} (${data.price_change_percent}%)`;
-  }
+    async function fetchPrice() {
+      try {
+        const res = await fetch(API_URL);
 
-  setInterval(fetchPrice, 2000);
-  fetchPrice();
-</script>
+        if (!res.ok) {
+          throw new Error("API not responding");
+        }
+
+        const data = await res.json();
+
+        const priceElement = document.getElementById("price");
+
+        priceElement.classList.remove("error", "loading");
+
+        priceElement.innerText =
+          `${data.symbol}: $${parseFloat(data.last_price).toFixed(2)} (${data.price_change_percent}%)`;
+
+      } catch (error) {
+        const priceElement = document.getElementById("price");
+
+        priceElement.classList.remove("loading");
+        priceElement.classList.add("error");
+
+        priceElement.innerText = "⚠ Failed to load data (retrying...)";
+
+        console.error("Fetch error:", error);
+      }
+    }
+
+    // Call every 2 sec
+    setInterval(fetchPrice, 2000);
+
+    // Initial call
+    fetchPrice();
+  </script>
+
 </body>
 </html>
