@@ -10,8 +10,7 @@ latest_price = {}
 MAX_CONNECTIONS = 3
 price_queue = asyncio.Queue()
 
-BINANCE_WS_URL = "wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker"
-
+BINANCE_WS_URL = "wss://data-stream.binance.vision/stream?streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker"
 
 class ConnectionManager:
     def __init__(self):
