@@ -1,78 +1,242 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Crypto Live Tracker</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 100px;
-      background-color: #f5f5f5;
+      background: linear-gradient(135deg, #0f172a, #111827, #1e293b);
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 720px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 32px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      font-size: 14px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(134, 239, 172, 0.2);
     }
 
     h1 {
-      font-size: 36px;
+      margin: 0 0 8px;
+      font-size: 40px;
+      line-height: 1.1;
     }
 
-    #price {
+    .subtitle {
+      margin: 0 0 28px;
+      color: #cbd5e1;
+      font-size: 16px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .label {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .value {
       font-size: 28px;
-      margin-top: 20px;
-      color: #2c3e50;
+      font-weight: 700;
+      word-break: break-word;
     }
 
-    .loading {
-      color: gray;
+    .price {
+      color: #f8fafc;
+    }
+
+    .positive {
+      color: #4ade80;
+    }
+
+    .negative {
+      color: #f87171;
+    }
+
+    .footer {
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 12px #22c55e;
     }
 
     .error {
-      color: red;
+      color: #f87171;
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 22px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .value {
+        font-size: 24px;
+      }
     }
   </style>
 </head>
-
 <body>
+  <div class="container">
+    <div class="card">
+      <div class="badge">Live Market Feed</div>
+      <h1>Crypto Live Tracker</h1>
+      <p class="subtitle">Real-time crypto price monitoring powered by FastAPI, Render, and Vercel.</p>
 
-  <h1>Live Crypto Price</h1>
-  <h2 id="price" class="loading">Loading...</h2>
+      <div class="grid">
+        <div class="info-box">
+          <div class="label">Symbol</div>
+          <div class="value" id="symbol">Loading...</div>
+        </div>
+
+        <div class="info-box">
+          <div class="label">Last Price</div>
+          <div class="value price" id="price">Loading...</div>
+        </div>
+
+        <div class="info-box">
+          <div class="label">24h Change</div>
+          <div class="value" id="change">Loading...</div>
+        </div>
+
+        <div class="info-box">
+          <div class="label">Last Updated</div>
+          <div class="value" id="timestamp">Loading...</div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="status">
+          <span class="dot"></span>
+          <span id="connectionStatus">Connected</span>
+        </div>
+        <div id="message">Fetching latest data...</div>
+      </div>
+    </div>
+  </div>
 
   <script>
     const API_URL = "https://crypto-price-websocket-ekol.onrender.com/price";
 
     async function fetchPrice() {
+      const symbolEl = document.getElementById("symbol");
+      const priceEl = document.getElementById("price");
+      const changeEl = document.getElementById("change");
+      const timestampEl = document.getElementById("timestamp");
+      const messageEl = document.getElementById("message");
+      const connectionStatusEl = document.getElementById("connectionStatus");
+
       try {
         const res = await fetch(API_URL);
 
         if (!res.ok) {
-          throw new Error("API not responding");
+          throw new Error("API request failed");
         }
 
         const data = await res.json();
 
-        const priceElement = document.getElementById("price");
+        symbolEl.textContent = data.symbol || "--";
+        priceEl.textContent = data.last_price
+          ? `$${parseFloat(data.last_price).toFixed(2)}`
+          : "--";
 
-        priceElement.classList.remove("error", "loading");
+        const changeValue = parseFloat(data.price_change_percent || 0);
+        changeEl.textContent = `${changeValue.toFixed(3)}%`;
+        changeEl.classList.remove("positive", "negative");
+        changeEl.classList.add(changeValue >= 0 ? "positive" : "negative");
 
-        priceElement.innerText =
-          `${data.symbol}: $${parseFloat(data.last_price).toFixed(2)} (${data.price_change_percent}%)`;
+        timestampEl.textContent = data.timestamp
+          ? new Date(data.timestamp).toLocaleTimeString()
+          : "--";
 
+        connectionStatusEl.textContent = "Connected";
+        messageEl.textContent = "Latest market data loaded successfully.";
+        messageEl.classList.remove("error");
       } catch (error) {
-        const priceElement = document.getElementById("price");
+        symbolEl.textContent = "--";
+        priceEl.textContent = "--";
+        changeEl.textContent = "--";
+        timestampEl.textContent = "--";
+        changeEl.classList.remove("positive", "negative");
 
-        priceElement.classList.remove("loading");
-        priceElement.classList.add("error");
-
-        priceElement.innerText = "⚠ Failed to load data (retrying...)";
+        connectionStatusEl.textContent = "Retrying...";
+        messageEl.textContent = "Unable to fetch price data right now.";
+        messageEl.classList.add("error");
 
         console.error("Fetch error:", error);
       }
     }
 
-    // Call every 2 sec
-    setInterval(fetchPrice, 2000);
-
-    // Initial call
     fetchPrice();
+    setInterval(fetchPrice, 2000);
   </script>
-
 </body>
 </html>
