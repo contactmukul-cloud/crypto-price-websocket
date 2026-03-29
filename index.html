@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Crypto Live Tracker</title>
+</head>
+<body>
+  <h1>Live Crypto Price</h1>
+  <h2 id="price">Loading...</h2>
+
+<script>
+  async function fetchPrice() {
+    const res = await fetch("https://crypto-price-websocket-ekol.onrender.com/price");
+    const data = await res.json();
+
+    document.getElementById("price").innerText =
+      `${data.symbol}: $${data.last_price} (${data.price_change_percent}%)`;
+  }
+
+  setInterval(fetchPrice, 2000);
+  fetchPrice();
+</script>
+</body>
+</html>
