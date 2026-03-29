@@ -15,7 +15,7 @@ This project streams live cryptocurrency prices and displays them on a web inter
 - Frontend polling every 2 seconds
 
 ## Live Links
-- Frontend: https://crypto-price-websocket-mfrd4azup-contactmukul-clouds-projects.vercel.app/
+- Frontend: https://crypto-price-websocket-caqjn0tnx-contactmukul-clouds-projects.vercel.app/
 - Backend API: https://crypto-price-websocket-ekol.onrender.com/price
 
 ## Run Locally
